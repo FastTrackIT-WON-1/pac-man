@@ -15,32 +15,9 @@ namespace PacMan
             // if debugging this may help seeing the calculated weights:
             // MapUtils.DisplayWeightsMap(map);
 
-            int count = -1;
-            MapCell currentCell = pacManCell;
-            List<MapCell> exitPath = new List<MapCell>();
-            int maxStepsCount = (map.GetLength(0) + 1) * (map.GetLength(1) + 1);
-            while (!currentCell.IsExit)
-            {
-                count++;
-                currentCell.IsOnShortestPath = true;
-                exitPath.Add(currentCell);
+            MapCell[] shortestPath = VisitCellsOnShortestPath(map, pacManCell);
 
-                MapCell nextCell = GetMinWeightVisitedNeighbour(currentCell, map);
-
-                if (nextCell == null)
-                {
-                    throw new Exception("Deadlocked: cannot find next move");
-                }
-
-                if (count >= maxStepsCount)
-                {
-                    throw new Exception("Deadlocked: exceeded max steps count");
-                }
-
-                currentCell = nextCell;
-            }
-
-            return exitPath.ToArray();
+            return shortestPath;
         }
 
         private static MapCell FindPacMan(MapCell[,] map)
@@ -79,7 +56,6 @@ namespace PacMan
         {
             Queue<MapCell> queue = new Queue<MapCell>();
             queue.Enqueue(currentCell);
-            int currentWeight = 0;
 
             while (queue.Count > 0)
             {
@@ -89,8 +65,6 @@ namespace PacMan
                     return;
                 }
 
-                currentWeight++;
-
                 MapCell[] neighbours = GetNonVisitedNeighbours(currentCell, map);
                 foreach (MapCell n in neighbours)
                 {
@@ -98,6 +72,36 @@ namespace PacMan
                     queue.Enqueue(n);
                 }
             }
+        }
+
+        private static MapCell[] VisitCellsOnShortestPath(MapCell[,] map, MapCell pacManCell)
+        {
+            int count = -1;
+            MapCell currentCell = pacManCell;
+            List<MapCell> exitPath = new List<MapCell>();
+            int maxStepsCount = (map.GetLength(0) + 1) * (map.GetLength(1) + 1);
+            while (!currentCell.IsExit)
+            {
+                count++;
+                currentCell.IsOnShortestPath = true;
+                exitPath.Add(currentCell);
+
+                MapCell nextCell = GetMinWeightVisitedNeighbour(currentCell, map);
+
+                if (nextCell == null)
+                {
+                    throw new Exception("Deadlocked: cannot find next move");
+                }
+
+                if (count >= maxStepsCount)
+                {
+                    throw new Exception("Deadlocked: exceeded max steps count");
+                }
+
+                currentCell = nextCell;
+            }
+
+            return exitPath.ToArray();
         }
 
         private static MapCell[] GetNonVisitedNeighbours(MapCell currentCell, MapCell[,] map)
